@@ -11,6 +11,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 )
 
+var ES01IP = flag.String("ES01IP", "http://172.20.0.3:9200", "ES01 IP Address")
+
 func main() {
 	log.Print("Starting the Server")
 	router := gin.Default()
@@ -25,7 +27,9 @@ func main() {
 	)
 
 	cfg := elasticsearch.Config{
-		Addresses: []string {},
+		Addresses: []string {
+			*ES01IP,
+		},
 	}
 
 	elasticClient, err := elasticsearch.NewClient(cfg)
@@ -37,7 +41,7 @@ func main() {
 		res, err := elasticClient.Info()
 		if err == nil {
 			json.NewDecoder(res.Body).Decode(&r)
-			log.Println("Connected to Elasticsearch")
+			log.Println("Connected to Elasticsearch :", r["name"], " :", *ES1IPAddress)
 			res.Body.Close()
 			break
 		} else {
