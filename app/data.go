@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 	"strconv"
+	"bufio"
 )
 
 var foodReviewsDir = flag.String("foodReviewsDir", "data/test_file.csv", "Food Reviews Directory")
@@ -63,14 +64,14 @@ func getReviewData() ([]FoodReview, error) {
 	return reviewsData, nil
 }
 
-func getFoodKeyword() ([]FoodDictionary, error) {
+func getFoodKeyword() ([]FoodKeyword, error) {
 	log.Print("Reading Food Keyword...")
 
     // Open the TXT file from Food Keyword Directory
-    file, err := os.Open(*foodKeywordDirectory)
+    file, err := os.Open(*foodKeywordDir)
     if err != nil {
 		log.Fatalln("Couldn't open the TXT file", err)
-        return []FoodDictionary{}, err
+        return []FoodKeyword{}, err
     }
     defer file.Close()
 
@@ -82,5 +83,16 @@ func getFoodKeyword() ([]FoodDictionary, error) {
 		datas = append(datas, scanner.Text())
 	}
 
-	return []FoodDictionary{}, nil
+	// Transform TEXT to foodKeywordsData Struct
+	foodKeywordsData := []FoodKeyword{}
+	for index, line := range datas {
+        foodKeywordsData = append(foodKeywordsData, FoodKeyword {
+			ID: index+1,
+			Keyword: line,
+		})
+	}
+
+	// Return Datas
+	log.Print("Reading Completed")
+	return foodKeywordsData, nil
 }
