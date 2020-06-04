@@ -48,14 +48,14 @@ func startElasticsearchConnection() {
 		}
 	}
 
-	insertBulkDocument()
+	insertBulkDocument(elasticClient)
 }
 
-func loadReviewsAndKeyword() ([]FoodReview, []FoodDictionary, error){
+func loadReviewsAndKeyword() ([]FoodReview, []FoodKeyword, error){
 	log.Print("Loading data...")
 	
 	// Get reviewDatas from getReviewData()
-	reviewsDatas, err := getReviewData()
+	reviewsData, err := getReviewData()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,7 +68,7 @@ func loadReviewsAndKeyword() ([]FoodReview, []FoodDictionary, error){
 	
 	// log.Print(foodKeyword)
 	log.Print("Loading Completed")
-	return reviewDatas, foodKeywords, nil
+	return reviewsData, foodKeywords, nil
 }
 
 func insertBulkDocument(es *elasticsearch.Client) {
