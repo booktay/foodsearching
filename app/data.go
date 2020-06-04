@@ -62,3 +62,25 @@ func getReviewData() ([]FoodReview, error) {
 	log.Print("Reading Completed")
 	return reviewsData, nil
 }
+
+func getFoodKeyword() ([]FoodDictionary, error) {
+	log.Print("Reading Food Keyword...")
+
+    // Open the TXT file from Food Keyword Directory
+    file, err := os.Open(*foodKeywordDirectory)
+    if err != nil {
+		log.Fatalln("Couldn't open the TXT file", err)
+        return []FoodDictionary{}, err
+    }
+    defer file.Close()
+
+	// Read lines by line to string from buffer
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+	datas := []string{}
+	for scanner.Scan() {
+		datas = append(datas, scanner.Text())
+	}
+
+	return []FoodDictionary{}, nil
+}
