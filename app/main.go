@@ -6,6 +6,8 @@ import (
 
 func main() {
 	log.Println("Starting the Container")
-	startElasticsearchConnection()
-	startServer()
+	reviewsData, _ := getReviewData()
+	log.Println(reviewsData)
+	// startElasticsearchConnection()
+	// startServer()
 }
