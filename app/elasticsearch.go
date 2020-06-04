@@ -41,4 +41,26 @@ func startElasticsearchConnection() {
 			time.Sleep(5 * time.Second)
 		}
 	}
+
+	loadReviewsAndKeyword()
+}
+
+func loadReviewsAndKeyword() ([]FoodReview, []FoodDictionary, error){
+	log.Print("Loading data...")
+	
+	// Get reviewDatas from getReviewData()
+	reviewsDatas, err := getReviewData()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get foodKeywords from getFoodKeyword()
+	foodKeywords, err := getFoodKeyword()
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	// log.Print(foodKeyword)
+	log.Print("Loading Completed")
+	return reviewDatas, foodKeywords, nil
 }

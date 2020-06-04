@@ -6,8 +6,6 @@ import (
 
 func main() {
 	log.Println("Starting the Container")
-	foodKeywordsData, _ := getFoodKeyword()
-	log.Println(foodKeywordsData)
-	// startElasticsearchConnection()
+	startElasticsearchConnection()
 	// startServer()
 }
