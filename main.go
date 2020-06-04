@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"encoding/json"
 	"time"
+	"flag"
 
 	"github.com/gin-gonic/gin"
 	"github.com/elastic/go-elasticsearch/v8"
@@ -34,7 +35,7 @@ func main() {
 		res, err := elasticClient.Info()
 		if err == nil {
 			json.NewDecoder(res.Body).Decode(&r)
-			log.Println("Connected to Elasticsearch :", r["name"], " :", *ES1IPAddress)
+			log.Println("Connected to Elasticsearch :", r["name"], " :", *ES01IP)
 			res.Body.Close()
 			break
 		} else {
