@@ -22,7 +22,7 @@ services:
       driver: none
   api:
     build:
-      context: .
+      context: ./app
     image: foodsearching-api:latest
     ports:
       - "5555:5555"
