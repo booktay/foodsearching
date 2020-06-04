@@ -12,7 +12,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 )
 
-var ES01IP = flag.String("ES01IP", "http://172.20.0.3:9200", "ES01 IP Address")
+var ES01IP = flag.String("ES01IP", "http://172.21.0.2:9200", "ES01 IP Address")
 
 func main() {
 	log.Print("Starting the Database Server")
