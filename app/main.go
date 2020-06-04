@@ -35,7 +35,7 @@ func main() {
 		res, err := elasticClient.Info()
 		if err == nil {
 			json.NewDecoder(res.Body).Decode(&r)
-			log.Println("Connected to Elasticsearch :", r["name"], ",", *ES01IP)
+			log.Println("Connected to Elasticsearch :", r["name"])
 			log.Println("IP Address :", *ES01IP)
 			res.Body.Close()
 			break
