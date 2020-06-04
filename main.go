@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 
 	"github.com/gin-gonic/gin"
+	"github.com/elastic/go-elasticsearch/v8"
 )
 
 func main() {
@@ -15,6 +16,16 @@ func main() {
 	r.GET("/reviews/:id", getReviewsByID)
 	r.PUT("/reviews/:id", editReviewsByID)
 	r.Run()
+
+	log.Print("Starting the Database Server")
+	var (
+		r map[string]interface{}
+	)
+
+	elasticClient, err := elasticsearch.NewClient()
+	if err != nil {
+		log.Fatalf("Error creating the client: %s", err)
+	} 
 }
 
 func getReviewsByID (c *gin.Context) {
