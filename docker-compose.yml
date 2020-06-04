@@ -20,9 +20,13 @@ services:
       - 9200:9200
     logging:
       driver: none
+    build:
+      context: .
+      dockerfile: ES-Dockerfile
   api:
     build:
       context: ./app
+      dockerfile: Dockerfile
     image: foodsearching-api:latest
     ports:
       - "5555:5555"
