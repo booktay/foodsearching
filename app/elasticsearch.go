@@ -48,7 +48,9 @@ func startElasticsearchConnection() {
 		}
 	}
 
-	insertBulkDocument(elasticClient)
+	// Run First time only to create elasticsearch db
+	//
+	// insertBulkDocument(elasticClient)
 }
 
 func loadReviewsAndKeyword() ([]FoodReview, []FoodKeyword, error){
@@ -120,8 +122,13 @@ func insertBulkDocument(es *elasticsearch.Client) {
 		log.Fatalf("Error loading data")
 	}
 
+	// Use to create Food reviews index
+	//
 	indexName := "reviews"
 	datas := reviewDatas
+
+	// Use to create Food keywords index
+	//
 	// indexName := "food"
 	// datas := foodKeyword
 
@@ -158,17 +165,16 @@ func insertBulkDocument(es *elasticsearch.Client) {
 		}
 
 		// Prepare the metadata payload
-		//
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%d" } }%s`, a.ID, "\n"))
+
 		// Prepare the data payload: encode to JSON
-		//
 		data, err := json.Marshal(&a)
 		if err != nil {
 			log.Fatalf("Cannot encode %d: %s", a.ID, err)
 		}
 
 		// Append newline to the data payload
-		data = append(data, "\n"...) // <-- Comment out to trigger failure for batch
+		data = append(data, "\n"...)
 
 		// Append payloads to the buffer (ignoring write errors)
 		buf.Grow(len(meta) + len(data))
@@ -176,7 +182,6 @@ func insertBulkDocument(es *elasticsearch.Client) {
 		buf.Write(data)
 
 		// When a threshold is reached, execute the Bulk() request with body from buffer
-		//
 		if i > 0 && i%batch == 0 || i == count-1 {
 			log.Printf(strings.Repeat("=", currBatch))
 
