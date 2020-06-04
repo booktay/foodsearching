@@ -1,2 +1,2 @@
-# foodsearching
-Create Search Application with GO and Elasticsearch
+# Food Searching Application
+Create Food Search API with GO and Elasticsearch
