@@ -6,6 +6,9 @@ ENV PORT 5555
 COPY . /go/src/${APP_NAME}
 WORKDIR /go/src/${APP_NAME}
 
+RUN apk add git
+RUN go get github.com/gin-gonic/gin
+
 RUN go get ./
 
 EXPOSE ${PORT}
