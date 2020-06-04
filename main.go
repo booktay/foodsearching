@@ -14,13 +14,6 @@ import (
 var ES01IP = flag.String("ES01IP", "http://172.20.0.3:9200", "ES01 IP Address")
 
 func main() {
-	log.Print("Starting the Server")
-	router := gin.Default()
-	router.GET("/reviews", getReviewsByKeyword)
-	router.GET("/reviews/:id", getReviewsByID)
-	router.PUT("/reviews/:id", editReviewsByID)
-	router.Run()
-
 	log.Print("Starting the Database Server")
 	var (
 		r map[string]interface{}
@@ -50,6 +43,12 @@ func main() {
 		}
 	}
 
+	log.Print("Starting the Server")
+	router := gin.Default()
+	router.GET("/reviews", getReviewsByKeyword)
+	router.GET("/reviews/:id", getReviewsByID)
+	router.PUT("/reviews/:id", editReviewsByID)
+	router.Run()
 }
 
 func getReviewsByID (c *gin.Context) {
