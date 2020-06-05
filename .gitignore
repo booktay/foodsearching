@@ -13,3 +13,9 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Elasticsearch
+es01/
+
+# DS_Store
+*.DS_Store
