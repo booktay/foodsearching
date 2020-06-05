@@ -1,15 +1,14 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 )
 
-func checkValidJson(text string) string {
+func checkInvalidJson(text string) bool {
 	// Check for JSON errors
 	if json.Valid([]byte(text)) {
-		return text
+		return false
 	} else {
-		return "{}"
+		return true
 	}
 }
