@@ -279,7 +279,7 @@ func insertBulkDocument() {
 func searchByMatchID(keyword string) map[string]interface{} {
 	query := `{
 		"query":{
-			"match":{
+			"term":{
 				"reviewid":"` + keyword + `"
 			}
 		}
