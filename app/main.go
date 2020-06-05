@@ -7,5 +7,5 @@ import (
 func main() {
 	log.Println("Starting the Container")
 	startElasticsearchConnection()
-	// startServer()
+	startServer()
 }

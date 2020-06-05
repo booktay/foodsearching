@@ -20,18 +20,16 @@ func startServer() {
 func getReviewsByID (c *gin.Context) {
 	reviewID := c.Param("id")
 	if reviewID != "" {
-		c.SecureJSON(http.StatusOK, gin.H{
-			"reviewID": reviewID,
-		})
+		result := searchByMatchKeyword("reviewid", reviewID)
+		c.SecureJSON(http.StatusOK, result)
 	}
 }
 
 func getReviewsByKeyword (c *gin.Context) {
-	keyword := c.DefaultQuery("query", "")
-	if keyword != "" {
-		c.SecureJSON(http.StatusOK, gin.H{
-			"Keyword": keyword,
-		})
+	reviewtext := c.DefaultQuery("query", "")
+	if reviewtext != "" {
+		result := searchByMatchKeyword("reviewtext", reviewtext)
+		c.SecureJSON(http.StatusOK, result)
 	}
 }
 

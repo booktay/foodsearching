@@ -9,7 +9,6 @@ import (
 	"time"
 	"flag"
 	"strings"
-	"reflect"
 	"os/exec"
 	"github.com/dustin/go-humanize"
 	"github.com/elastic/go-elasticsearch/v8"
@@ -277,7 +276,7 @@ func insertBulkDocument() {
 	}
 }
 
-func searchByMatchKeyword(field string, keyword string) (string) {
+func searchByMatchKeyword(field string, keyword string) map[string]interface{} {
 	query := `{"query":{"match":{"` + field + `":"` + keyword + `"}},"highlight": {"order":"score"}}`
 	
 	query = checkValidJson(query)
@@ -289,38 +288,31 @@ func searchByMatchKeyword(field string, keyword string) (string) {
 	// Instantiate a *strings.Reader object from string
 	read := strings.NewReader(b.String())
 
-	// var mapResp map[string]interface{}
+	var mapResp map[string]interface{}
 	var buf bytes.Buffer
 
 	// Attempt to encode the JSON query and look for errors
 	json.NewEncoder(&buf).Encode(read)
 	// Pass the JSON query to the Golang client's Search() method
-	// res, err := &elasticClient.Search(
-	// 	&elasticClient.Search.WithIndex("reviews"),
-		// &elasticClient.Search.WithBody(read),
-		// &elasticClient.Search.WithPretty(),
-	// )
-	// log.Println("BBB")
-	// fmt.Println(res, err)
-	// fmt.Println(reflect.TypeOf(res))
-	// log.Println("DDD")
+	res, err := elasticClient.Search(
+		elasticClient.Search.WithIndex("reviews"),
+		elasticClient.Search.WithBody(read),
+		elasticClient.Search.WithPretty(),
+	)
+
 	// Check for any errors returned by API call to Elasticsearch
-	// if err != nil {
-	// 	log.Fatalf("Elasticsearch Search() API ERROR:", err)
-		// If no errors are returned, parse esapi.Response object
-	// } else {
+	if err != nil {
+		log.Fatalf("Elasticsearch Search() API ERROR:", err)
+	} else {
 		// Close the result body when the function call is complete
-	// 	defer res.Body.Close()
+		defer res.Body.Close()
 
 		// Decode the JSON response and using a pointer
-	// 	if err := json.NewDecoder(res.Body).Decode(&mapResp); err == nil {
-	// 		fmt.Println(`&mapResp:`, &mapResp, "\n")
-	// 		fmt.Println(`mapResp["hits"]:`, mapResp["hits"])
-			// return mapResp
-	// 	}
-	// }
-	// log.Println(mapResp)
-	return "ccc"
+		json.NewDecoder(res.Body).Decode(&mapResp)
+		// fmt.Println(`mapResp["_shards"] :`, mapResp["_shards"])
+		// fmt.Println(`mapResp["hits"] :`, mapResp["hits"])
+	}
+	return mapResp
 }
 
 func checkValidJson(text string) string {
