@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"time"
-	"strconv"
 	"bufio"
 )
 
@@ -14,14 +13,14 @@ var foodReviewsDir = flag.String("foodReviewsDir", "data/test_file.csv", "Food R
 var foodKeywordDir = flag.String("foodKeywordDir", "data/food_20k_keyword.txt", "Food Keyword Directory")
 
 type FoodReview struct {
-	ID int `json:"reviewid"`
+	ID string `json:"reviewid"`
 	ReviewText string `json:"reviewtext"`
 	CreatedTime int64 `json:"created"`
 	ModifiedTime int64 `json:"modified"`
 }
 
 type FoodKeyword struct {
-	ID int `json:"keywordid"`
+	ID string `json:"keywordid"`
 	Keyword string `json:"keyword"`
 }
 
@@ -51,9 +50,8 @@ func getReviewData() ([]FoodReview, error) {
 	// Transform CSV format to FoodReview struct
 	reviewsData := []FoodReview{}
 	for _, line := range datas[1:] {
-		id, _ := strconv.Atoi(line[0])
         reviewsData = append(reviewsData, FoodReview{
-			ID: id,
+			ID: line[0],
 			ReviewText: line[1],
 			CreatedTime: timeNow,
 			ModifiedTime: timeNow,
@@ -87,7 +85,7 @@ func getFoodKeyword() ([]FoodKeyword, error) {
 	foodKeywordsData := []FoodKeyword{}
 	for index, line := range datas {
         foodKeywordsData = append(foodKeywordsData, FoodKeyword {
-			ID: index+1,
+			ID: string(index+1),
 			Keyword: line,
 		})
 	}
