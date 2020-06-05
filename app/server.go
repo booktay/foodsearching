@@ -9,12 +9,17 @@ import (
 )
 
 func startServer() {
-	log.Print("Starting the Server")
+	log.Println("Starting the Server")
+	router := setupRouter()
+	router.Run()
+}
+
+func setupRouter() *gin.Engine {
 	router := gin.Default()
 	router.GET("/reviews", getReviewsByKeyword)
 	router.GET("/reviews/:id", getReviewsByID)
 	router.PUT("/reviews/:id", editReviewsByID)
-	router.Run()
+	return router
 }
 
 func getReviewsByID (c *gin.Context) {
@@ -31,11 +36,7 @@ func getReviewsByKeyword (c *gin.Context) {
 
 func editReviewsByID (c *gin.Context) {
 	reviewID := c.Param("id")
-	body := c.Request.Body
-	reviewText, _ := ioutil.ReadAll(body)
-	editReviewsByMatchID(reviewID, string(reviewText))
-	// result := {}
-	c.SecureJSON(http.StatusOK, gin.H{
-		"message": "pong",
-	})
+	reviewText, _ := ioutil.ReadAll(c.Request.Body)
+	result := editReviewsByMatchID(reviewID, string(reviewText))
+	c.SecureJSON(http.StatusOK, result)
 }
