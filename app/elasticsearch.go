@@ -33,13 +33,13 @@ func startElasticsearchConnection() {
 		},
 	}
 
-	elasticClient, err := elasticsearch.NewClient(cfg)
+	es, err := elasticsearch.NewClient(cfg)
 	if err != nil {
 		log.Fatalf("Error creating the client: %s", err)
 	}
 
 	for {
-		res, err := elasticClient.Info()
+		res, err := es.Info()
 		if err == nil {
 			json.NewDecoder(res.Body).Decode(&r)
 			log.Println("Connected to Elasticsearch :", r["name"])
@@ -52,9 +52,14 @@ func startElasticsearchConnection() {
 		}
 	}
 
+	// Passs es variable to elasticClient variable
+	es_temp := &elasticClient
+	*es_temp = es
+
 	// Run First time only to create elasticsearch db
 	//
 	// insertBulkDocument()
+
 }
 
 func getlocalIPAddress() string {
@@ -272,63 +277,57 @@ func insertBulkDocument() {
 	}
 }
 
-func searchByMatchKeyword(keyword string) {
-	query := `{"query":{"match":{"reviewid":` + keyword + `}},"highlight": {"order":"score"}}`
+func searchByMatchKeyword(field string, keyword string) (string) {
+	query := `{"query":{"match":{"` + field + `":"` + keyword + `"}},"highlight": {"order":"score"}}`
 	
 	query = checkValidJson(query)
 
 	// Build a new string from JSON query
 	var b strings.Builder
 	b.WriteString(query)
-
+	
 	// Instantiate a *strings.Reader object from string
 	read := strings.NewReader(b.String())
-	fmt.Println("read:", read)
 
-	var mapResp map[string]interface{}
+	// var mapResp map[string]interface{}
 	var buf bytes.Buffer
 
 	// Attempt to encode the JSON query and look for errors
-	if err := json.NewEncoder(&buf).Encode(read); err != nil {
-		log.Fatalf("json.NewEncoder() ERROR:", err)
-		// Query is a valid JSON object
-	} else {
-		fmt.Println("json.NewEncoder encoded query:", read, "\n")
+	json.NewEncoder(&buf).Encode(read)
+	// Pass the JSON query to the Golang client's Search() method
+	// res, err := &elasticClient.Search(
+	// 	&elasticClient.Search.WithIndex("reviews"),
+		// &elasticClient.Search.WithBody(read),
+		// &elasticClient.Search.WithPretty(),
+	// )
+	// log.Println("BBB")
+	// fmt.Println(res, err)
+	// fmt.Println(reflect.TypeOf(res))
+	// log.Println("DDD")
+	// Check for any errors returned by API call to Elasticsearch
+	// if err != nil {
+	// 	log.Fatalf("Elasticsearch Search() API ERROR:", err)
+		// If no errors are returned, parse esapi.Response object
+	// } else {
+		// Close the result body when the function call is complete
+	// 	defer res.Body.Close()
 
-		// Pass the JSON query to the Golang client's Search() method
-		res, err := elasticClient.Search(
-			elasticClient.Search.WithIndex("reviews"),
-			elasticClient.Search.WithBody(read),
-			elasticClient.Search.WithTrackTotalHits(true),
-		)
-
-		// Check for any errors returned by API call to Elasticsearch
-		if err != nil {
-			log.Fatalf("Elasticsearch Search() API ERROR:", err)
-
-			// If no errors are returned, parse esapi.Response object
-		} else {
-			fmt.Println("res TYPE:", reflect.TypeOf(res))
-
-			// Close the result body when the function call is complete
-			defer res.Body.Close()
-
-			// Decode the JSON response and using a pointer
-			if err := json.NewDecoder(res.Body).Decode(&mapResp); err == nil {
-				fmt.Println(`&mapResp:`, &mapResp, "\n")
-				fmt.Println(`mapResp["hits"]:`, mapResp["hits"])
-			}
-		}
-	}
+		// Decode the JSON response and using a pointer
+	// 	if err := json.NewDecoder(res.Body).Decode(&mapResp); err == nil {
+	// 		fmt.Println(`&mapResp:`, &mapResp, "\n")
+	// 		fmt.Println(`mapResp["hits"]:`, mapResp["hits"])
+			// return mapResp
+	// 	}
+	// }
+	// log.Println(mapResp)
+	return "ccc"
 }
 
-func checkValidJson(text string) string{
+func checkValidJson(text string) string {
 	// Check for JSON errors
-	if json.Valid([]byte(text)) == false {
-		fmt.Println("constructQuery() ERROR: query string not valid:", text)
-		return "{}"
-	} else {
-		fmt.Println("constructQuery() valid JSON:", text)
+	if json.Valid([]byte(text)) {
 		return text
+	} else {
+		return "{}"
 	}
 }
