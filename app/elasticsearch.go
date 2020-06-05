@@ -276,9 +276,51 @@ func insertBulkDocument() {
 	}
 }
 
-func searchByMatchKeyword(field string, keyword string) map[string]interface{} {
-	query := `{"query":{"match":{"` + field + `":"` + keyword + `"}},"highlight": {"order":"score"}}`
+func searchByMatchID(keyword string) map[string]interface{} {
+	query := `{"query":{"match":{"reviewid":"` + keyword + `"}},"highlight": {"order":"score"}}`
 	
+	query = checkValidJson(query)
+
+	// Build a new string from JSON query
+	var b strings.Builder
+	b.WriteString(query)
+	
+	// Instantiate a *strings.Reader object from string
+	read := strings.NewReader(b.String())
+
+	var mapResp map[string]interface{}
+	var buf bytes.Buffer
+
+	// Attempt to encode the JSON query and look for errors
+	json.NewEncoder(&buf).Encode(read)
+	// Pass the JSON query to the Golang client's Search() method
+	res, err := elasticClient.Search(
+		elasticClient.Search.WithIndex("reviews"),
+		elasticClient.Search.WithBody(read),
+		elasticClient.Search.WithPretty(),
+	)
+
+	// Check for any errors returned by API call to Elasticsearch
+	if err != nil {
+		log.Fatalf("Elasticsearch Search() API ERROR:", err)
+	} else {
+		// Close the result body when the function call is complete
+		defer res.Body.Close()
+
+		// Decode the JSON response and using a pointer
+		json.NewDecoder(res.Body).Decode(&mapResp)
+		// fmt.Println(`mapResp["_shards"] :`, mapResp["_shards"])
+		// fmt.Println(`mapResp["hits"] :`, mapResp["hits"])
+	}
+	return mapResp
+}
+
+func searchByMatchKeyword(keyword string) map[string]interface{} {
+	query := `{"query":{"match":{"reviewtext":"` + keyword + `"}},
+		"highlight": {"order": "score","require_field_match": false,
+		"fields":{"reviewtext":{"type": "unified","fragmenter": "span"}}},
+		"size": 100`
+
 	query = checkValidJson(query)
 
 	// Build a new string from JSON query
