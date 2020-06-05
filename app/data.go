@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 	"bufio"
+	"strconv"
 )
 
 var foodReviewsDir = flag.String("foodReviewsDir", "data/test_file.csv", "Food Reviews Directory")
@@ -85,7 +86,7 @@ func getFoodKeyword() ([]FoodKeyword, error) {
 	foodKeywordsData := []FoodKeyword{}
 	for index, line := range datas {
         foodKeywordsData = append(foodKeywordsData, FoodKeyword {
-			ID: string(index+1),
+			ID: strconv.Itoa(index+1),
 			Keyword: line,
 		})
 	}
