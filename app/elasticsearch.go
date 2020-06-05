@@ -10,7 +10,8 @@ import (
 	"flag"
 	"strings"
 	"os/exec"
-	"reflect"
+	// "reflect"
+	"strconv"
 	"github.com/dustin/go-humanize"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
@@ -57,7 +58,6 @@ func startElasticsearchConnection() {
 	*es_temp = es
 
 	// Run First time only to create elasticsearch db
-	//
 	// insertBulkDocument()
 
 }
@@ -142,12 +142,10 @@ func insertBulkDocument() {
 	}
 
 	// Use to create Food reviews index
-	//
-	indexName := "reviews"
+	indexName := "review"
 	datas := reviewDatas
 
 	// Use to create Food keywords index
-	//
 	// indexName := "food"
 	// datas := foodKeyword
 
@@ -183,13 +181,15 @@ func insertBulkDocument() {
 			currBatch++
 		}
 
+		ID, _ := strconv.Atoi(a.ID)
+
 		// Prepare the metadata payload
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%d" } }%s`, a.ID, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_id" : "%d" } }%s`, ID, "\n"))
 
 		// Prepare the data payload: encode to JSON
 		data, err := json.Marshal(&a)
 		if err != nil {
-			log.Fatalf("Cannot encode %d: %s", a.ID, err)
+			log.Fatalf("Cannot encode %d: %s", ID, err)
 		}
 
 		// Append newline to the data payload
@@ -214,7 +214,7 @@ func insertBulkDocument() {
 				if err := json.NewDecoder(res.Body).Decode(&raw); err != nil {
 					log.Fatalf("Failure to to parse response body: %s", err)
 				} else {
-					log.Printf("  Error: [%d] %s: %s",
+					log.Printf("Error: [%d] %s: %s",
 						res.StatusCode,
 						raw["error"].(map[string]interface{})["type"],
 						raw["error"].(map[string]interface{})["reason"],
@@ -233,7 +233,7 @@ func insertBulkDocument() {
 							numErrors++
 
 							// ... and print the response status and error information ...
-							log.Printf("  Error: [%d]: %s: %s: %s: %s",
+							log.Printf("Error: [%d]: %s: %s: %s: %s",
 								d.Index.Status,
 								d.Index.Error.Type,
 								d.Index.Error.Reason,
@@ -347,8 +347,8 @@ func searchByMatchKeyword(keyword string) map[string]interface{} {
 				"fragmenter":"span"
 			}
 		},
-		"pre_tags":["<b>"],
-		"post_tags":["</b>"]
+		"pre_tags":["<keyword>"],
+		"post_tags":["</keyword>"]
 		},
 		"size":100
 	}`
@@ -389,6 +389,58 @@ func searchByMatchKeyword(keyword string) map[string]interface{} {
 		hits := mapResp["hits"].(map[string]interface{})
 		delete(hits, "total")
 		return hits
+	}
+	return mapResp
+}
+
+func editReviewsByMatchID(keyword string, text string) map[string]interface{} {
+	// Get Document of reviewID
+	document := searchByMatchID(keyword)
+	
+	// Get Document ID
+	ID := document["_id"].(string)
+
+	// Get Last Modified Time
+	source := document["_source"].(map[string]interface {})
+	modifiedTime := source["modified"].(float64)
+
+	// Get Present Time
+	timeNow := time.Now().UnixNano()
+	
+	var mapResp map[string]interface{}
+
+	if timeNow > int64(modifiedTime) {
+		query := []byte(fmt.Sprintf(`{
+			"doc": {
+				"reviewtext": "%s",
+				"modified": %d
+			}
+		}`, text, timeNow))
+
+		var buf bytes.Buffer
+
+		// Append payloads to the buffer (ignoring write errors)
+		buf.Grow(len(query))
+		buf.Write(query)
+		
+		res, err := elasticClient.Update("reviews", ID, bytes.NewReader(buf.Bytes()), elasticClient.Update.WithPretty())
+
+		if err != nil {
+			log.Fatalf("Elasticsearch Update() API ERROR:", err)
+		} else {
+			// Close the result body when the function call is complete
+			defer res.Body.Close()
+
+			// Decode the JSON response and using a pointer
+			json.NewDecoder(res.Body).Decode(&mapResp)
+
+			hits := map[string]interface{} {
+				"result": mapResp["result"].(string),
+				"id": mapResp["_id"].(string),
+			}
+			
+			return hits
+		}
 	}
 	return mapResp
 }

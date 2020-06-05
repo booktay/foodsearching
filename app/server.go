@@ -31,11 +31,7 @@ func getReviewsByKeyword (c *gin.Context) {
 
 func editReviewsByID (c *gin.Context) {
 	reviewID := c.Param("id")
-	body := c.Request.Body
-	reviewText, _ := ioutil.ReadAll(body)
-	editReviewsByMatchID(reviewID, string(reviewText))
-	// result := {}
-	c.SecureJSON(http.StatusOK, gin.H{
-		"message": "pong",
-	})
+	reviewText, _ := ioutil.ReadAll(c.Request.Body)
+	result := editReviewsByMatchID(reviewID, string(reviewText))
+	c.SecureJSON(http.StatusOK, result)
 }
