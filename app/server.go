@@ -9,7 +9,7 @@ import (
 )
 
 func startServer() {
-	log.Print("Starting the Server")
+	log.Println("Starting the Server")
 	router := gin.Default()
 	router.GET("/reviews", getReviewsByKeyword)
 	router.GET("/reviews/:id", getReviewsByID)

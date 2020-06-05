@@ -59,7 +59,6 @@ func startElasticsearchConnection() {
 
 	// Run First time only to create elasticsearch db
 	// insertBulkDocument()
-
 }
 
 func getlocalIPAddress() string {
@@ -443,4 +442,63 @@ func editReviewsByMatchID(keyword string, text string) map[string]interface{} {
 		}
 	}
 	return mapResp
+}
+
+func searchAllDocumentByIndex(index string) map[string]interface{} {
+	query := `{
+		"query":{
+			"match_all":{}
+		}
+	}`
+
+	var mapResp map[string]interface{}
+
+	if checkInvalidJson(query) {
+		return mapResp
+	}
+
+	// Build a new string from JSON query
+	var b strings.Builder
+	b.WriteString(query)
+	
+	// Instantiate a *strings.Reader object from string
+	read := strings.NewReader(b.String())
+
+	var buf bytes.Buffer
+
+	// Attempt to encode the JSON query and look for errors
+	json.NewEncoder(&buf).Encode(read)
+	// Pass the JSON query to the Golang client's Search() method
+	res, err := elasticClient.Search(
+		elasticClient.Search.WithIndex(index),
+		elasticClient.Search.WithBody(read),
+		elasticClient.Search.WithPretty(),
+	)
+
+	// Check for any errors returned by API call to Elasticsearch
+	if err != nil {
+		log.Fatalf("Elasticsearch Search() API ERROR:", err)
+	} else {
+		// Close the result body when the function call is complete
+		defer res.Body.Close()
+
+		// Decode the JSON response and using a pointer
+		json.NewDecoder(res.Body).Decode(&mapResp)
+
+		// fmt.Println(`mapResp["_shards"] :`, mapResp["_shards"])
+		// fmt.Println(`mapResp["hits"] :`, mapResp["hits"])
+
+		hits := mapResp["hits"].(map[string]interface{})
+		// hitsInhints := hits["hits"].([]interface{})
+		// document := hitsInhints[0].(map[string]interface {})
+		
+		return hits
+	}
+	return mapResp
+}
+
+func getNumberOfDocumentInIndex(index string) float64 {
+	documents := searchAllDocumentByIndex(index)
+	total := documents["total"].(map[string]interface{})
+	return total["value"].(float64)
 }
