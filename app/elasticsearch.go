@@ -314,12 +314,3 @@ func searchByMatchKeyword(field string, keyword string) map[string]interface{} {
 	}
 	return mapResp
 }
-
-func checkValidJson(text string) string {
-	// Check for JSON errors
-	if json.Valid([]byte(text)) {
-		return text
-	} else {
-		return "{}"
-	}
-}
