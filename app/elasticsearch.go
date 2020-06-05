@@ -10,6 +10,7 @@ import (
 	"flag"
 	"strings"
 	"os/exec"
+	"reflect"
 	"github.com/dustin/go-humanize"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
@@ -277,9 +278,19 @@ func insertBulkDocument() {
 }
 
 func searchByMatchID(keyword string) map[string]interface{} {
-	query := `{"query":{"match":{"reviewid":"` + keyword + `"}},"highlight": {"order":"score"}}`
-	
-	query = checkValidJson(query)
+	query := `{
+		"query":{
+			"match":{
+				"reviewid":"` + keyword + `"
+			}
+		}
+	}`
+
+	var mapResp map[string]interface{}
+
+	if checkInvalidJson(query) {
+		return mapResp
+	}
 
 	// Build a new string from JSON query
 	var b strings.Builder
@@ -288,7 +299,6 @@ func searchByMatchID(keyword string) map[string]interface{} {
 	// Instantiate a *strings.Reader object from string
 	read := strings.NewReader(b.String())
 
-	var mapResp map[string]interface{}
 	var buf bytes.Buffer
 
 	// Attempt to encode the JSON query and look for errors
@@ -309,19 +319,45 @@ func searchByMatchID(keyword string) map[string]interface{} {
 
 		// Decode the JSON response and using a pointer
 		json.NewDecoder(res.Body).Decode(&mapResp)
+
 		// fmt.Println(`mapResp["_shards"] :`, mapResp["_shards"])
 		// fmt.Println(`mapResp["hits"] :`, mapResp["hits"])
+
+		hits := mapResp["hits"].(map[string]interface{})
+		hitsInhints := hits["hits"].([]interface{})
+		document := hitsInhints[0].(map[string]interface {})
+		
+		return document
 	}
 	return mapResp
 }
 
 func searchByMatchKeyword(keyword string) map[string]interface{} {
-	query := `{"query":{"match":{"reviewtext":"` + keyword + `"}},
-		"highlight": {"order": "score","require_field_match": false,
-		"fields":{"reviewtext":{"type": "unified","fragmenter": "span"}}},
-		"size": 100`
+	query := `{
+		"query":{
+			"match":{"reviewtext":"` + keyword + `"
+			}
+		},
+		"highlight":{
+			"order":"score",
+			"require_field_match":false,
+		"fields":{
+			"reviewtext":{
+				"type":"unified",
+				"fragmenter":"span"
+			}
+		},
+		"pre_tags":["<b>"],
+		"post_tags":["</b>"]
+		},
+		"size":100
+	}`
 
-	query = checkValidJson(query)
+	var mapResp map[string]interface{}
+
+	if checkInvalidJson(query) {
+		return mapResp
+	}
 
 	// Build a new string from JSON query
 	var b strings.Builder
@@ -329,10 +365,9 @@ func searchByMatchKeyword(keyword string) map[string]interface{} {
 	
 	// Instantiate a *strings.Reader object from string
 	read := strings.NewReader(b.String())
-
-	var mapResp map[string]interface{}
+	
 	var buf bytes.Buffer
-
+	
 	// Attempt to encode the JSON query and look for errors
 	json.NewEncoder(&buf).Encode(read)
 	// Pass the JSON query to the Golang client's Search() method
@@ -351,8 +386,9 @@ func searchByMatchKeyword(keyword string) map[string]interface{} {
 
 		// Decode the JSON response and using a pointer
 		json.NewDecoder(res.Body).Decode(&mapResp)
-		// fmt.Println(`mapResp["_shards"] :`, mapResp["_shards"])
-		// fmt.Println(`mapResp["hits"] :`, mapResp["hits"])
+		hits := mapResp["hits"].(map[string]interface{})
+		delete(hits, "total")
+		return hits
 	}
 	return mapResp
 }
