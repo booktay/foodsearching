@@ -10,11 +10,16 @@ import (
 
 func startServer() {
 	log.Println("Starting the Server")
+	router := setupRouter()
+	router.Run()
+}
+
+func setupRouter() *gin.Engine {
 	router := gin.Default()
 	router.GET("/reviews", getReviewsByKeyword)
 	router.GET("/reviews/:id", getReviewsByID)
 	router.PUT("/reviews/:id", editReviewsByID)
-	router.Run()
+	return router
 }
 
 func getReviewsByID (c *gin.Context) {
