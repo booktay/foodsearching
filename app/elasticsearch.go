@@ -56,9 +56,6 @@ func startElasticsearchConnection() {
 	// Passs es variable to elasticClient variable
 	es_temp := &elasticClient
 	*es_temp = es
-
-	// Run First time only to create elasticsearch db
-	// insertBulkDocument()
 }
 
 func getlocalIPAddress() string {
@@ -91,7 +88,7 @@ func loadReviewsAndKeyword() ([]FoodReview, []FoodKeyword, error){
 	return reviewsData, foodKeywords, nil
 }
 
-func insertBulkDocument() {
+func insertBulkDocument() (string, error) {
 
 	var (
 		_ = fmt.Print
@@ -133,20 +130,19 @@ func insertBulkDocument() {
 		currBatch  int
 	)
 
-	// reviewDatas, foodKeyword, err := loadReviewsAndKeyword()
-	reviewDatas, _, err := loadReviewsAndKeyword()
-	// _, foodKeyword, err := loadReviewsAndKeyword()
+	// reviewDatas, _, err := loadReviewsAndKeyword()
+	_, foodKeyword, err := loadReviewsAndKeyword()
+
 	if err != nil {
 		log.Fatalf("Error loading data")
 	}
 
-	// Use to create Food reviews index
-	indexName := "review"
-	datas := reviewDatas
+	// datas := reviewDatas
+	// indexName := "review"
 
-	// Use to create Food keywords index
-	// indexName := "food"
-	// datas := foodKeyword
+	datas := foodKeyword
+	indexName := "food"
+	
 
 	flag.IntVar(&count, "count", len(datas), "Number of documents to generate")
 	flag.IntVar(&batch, "batch", len(datas)/15+1 , "Number of documents to send in one batch")
@@ -159,14 +155,14 @@ func insertBulkDocument() {
 
 	// Re-create the index
 	if res, err = elasticClient.Indices.Delete([]string{indexName}); err != nil {
-		log.Fatalf("Cannot delete index: %s", err)
+		return "Cannot delete index", err
 	}
 	res, err = elasticClient.Indices.Create(indexName)
 	if err != nil {
-		log.Fatalf("Cannot create index: %s", err)
+		return "Cannot create index", err
 	}
 	if res.IsError() {
-		log.Fatalf("Cannot create index: %s", res)
+		return "Cannot create index", nil
 	}
 
 	start := time.Now().UTC()
@@ -188,7 +184,7 @@ func insertBulkDocument() {
 		// Prepare the data payload: encode to JSON
 		data, err := json.Marshal(&a)
 		if err != nil {
-			log.Fatalf("Cannot encode %d: %s", ID, err)
+			return "Cannot encode datas " , err
 		}
 
 		// Append newline to the data payload
@@ -266,6 +262,7 @@ func insertBulkDocument() {
 			dur.Truncate(time.Millisecond),
 			humanize.Comma(int64(1000.0/float64(dur/time.Millisecond)*float64(numIndexed))),
 		)
+		return "Indexed documents with errors", nil
 	} else {
 		log.Printf(
 			"Sucessfuly indexed [%s] documents in %s (%s docs/sec)",
@@ -273,7 +270,9 @@ func insertBulkDocument() {
 			dur.Truncate(time.Millisecond),
 			humanize.Comma(int64(1000.0/float64(dur/time.Millisecond)*float64(numIndexed))),
 		)
+		return "Sucessfuly indexed documents", nil
 	}
+	
 }
 
 func searchByMatchID(keyword string) map[string]interface{} {
@@ -336,73 +335,79 @@ func searchByMatchID(keyword string) map[string]interface{} {
 }
 
 func searchByMatchKeyword(keyword string) map[string]interface{} {
-	query := `{
-		"query":{
-			"match":{"reviewtext":"` + keyword + `"
-			}
-		},
-		"highlight":{
-			"order":"score",
-			"require_field_match":false,
-		"fields":{
-			"reviewtext":{
-				"type":"unified",
-				"fragmenter":"span"
-			}
-		},
-		"pre_tags":["<keyword>"],
-		"post_tags":["</keyword>"]
-		},
-		"size":100
-	}`
+	if checkHaveFoodKeyword(keyword) {
+		query := `{
+			"query":{
+				"match":{"reviewtext":"` + keyword + `"
+				}
+			},
+			"highlight":{
+				"order":"score",
+				"require_field_match":false,
+			"fields":{
+				"reviewtext":{
+					"type":"unified",
+					"fragmenter":"span"
+				}
+			},
+			"pre_tags":["<keyword>"],
+			"post_tags":["</keyword>"]
+			},
+			"size":100
+		}`
 
-	var mapResp map[string]interface{}
+		var mapResp map[string]interface{}
 
-	if checkInvalidJson(query) {
-		return map[string]interface{} {
-			"Message" : "Keyword is nnvalid format",
+		if checkInvalidJson(query) {
+			return map[string]interface{} {
+				"Message" : "Keyword is nnvalid format",
+			}
 		}
-	}
 
-	// Build a new string from JSON query
-	var b strings.Builder
-	b.WriteString(query)
-	
-	// Instantiate a *strings.Reader object from string
-	read := strings.NewReader(b.String())
-	
-	var buf bytes.Buffer
-	
-	// Attempt to encode the JSON query and look for errors
-	json.NewEncoder(&buf).Encode(read)
-	// Pass the JSON query to the Golang client's Search() method
-	res, err := elasticClient.Search(
-		elasticClient.Search.WithIndex("reviews"),
-		elasticClient.Search.WithBody(read),
-		elasticClient.Search.WithPretty(),
-	)
+		// Build a new string from JSON query
+		var b strings.Builder
+		b.WriteString(query)
+		
+		// Instantiate a *strings.Reader object from string
+		read := strings.NewReader(b.String())
+		
+		var buf bytes.Buffer
+		
+		// Attempt to encode the JSON query and look for errors
+		json.NewEncoder(&buf).Encode(read)
+		// Pass the JSON query to the Golang client's Search() method
+		res, err := elasticClient.Search(
+			elasticClient.Search.WithIndex("reviews"),
+			elasticClient.Search.WithBody(read),
+			elasticClient.Search.WithPretty(),
+		)
 
-	// Check for any errors returned by API call to Elasticsearch
-	if err != nil {
-		return map[string]interface{} {
-			"Message" : "Elasticsearch Search() API Error",
-			"Error" : err,
+		// Check for any errors returned by API call to Elasticsearch
+		if err != nil {
+			return map[string]interface{} {
+				"Message" : "Elasticsearch Search() API Error",
+				"Error" : err,
+			}
+		} else {
+			// Close the result body when the function call is complete
+			defer res.Body.Close()
+
+			// Decode the JSON response and using a pointer
+			json.NewDecoder(res.Body).Decode(&mapResp)
+
+			hits := mapResp["hits"].(map[string]interface{})
+			hitsInHits := hits["hits"].([]interface{})
+			if len(hitsInHits) > 0 {
+				return hits
+			} else {
+				return map[string]interface{} {
+					"Message" : "Result is not found",
+				}
+			}
 		}
 	} else {
-		// Close the result body when the function call is complete
-		defer res.Body.Close()
-
-		// Decode the JSON response and using a pointer
-		json.NewDecoder(res.Body).Decode(&mapResp)
-
-		hits := mapResp["hits"].(map[string]interface{})
-		hitsInHits := hits["hits"].([]interface{})
-		if len(hitsInHits) > 0 {
-			return hits
-		} else {
-			return map[string]interface{} {
-				"Message" : "Keyword is not found",
-			}
+		return map[string]interface{} {
+			"message": "Food keyword isn't in 20,000 keywords",
 		}
 	}
 }
@@ -442,7 +447,7 @@ func editReviewsByMatchID(keyword string, text string) map[string]interface{} {
 			if err != nil {
 				return map[string]interface{} {
 					"Message" : "Elasticsearch Update() API Error",
-					"Error" : err,
+					"result" : "Not updated",
 				}
 			} else {
 				// Close the result body when the function call is complete
@@ -450,6 +455,7 @@ func editReviewsByMatchID(keyword string, text string) map[string]interface{} {
 
 				// Decode the JSON response and using a pointer
 				json.NewDecoder(res.Body).Decode(&mapResp)
+
 				if _, ok := mapResp["_id"]; ok {
 					return map[string]interface{} {
 						"result": mapResp["result"].(string),
@@ -458,14 +464,14 @@ func editReviewsByMatchID(keyword string, text string) map[string]interface{} {
 				} else {
 					return map[string]interface{} {
 						"Message" : "Error when updated",
-						"result": "Not Updated",
+						"result": "Not updated",
 					}
 				}
 			}
 		} else {
 			return map[string]interface{} {
 				"Message" : "An updated time came after Last modified time",
-				"result": "Not Updated",
+				"result": "Not updated",
 			}
 		}
 	}
@@ -479,7 +485,8 @@ func searchAllDocumentByIndex(index string) map[string]interface{} {
 	query := `{
 		"query":{
 			"match_all":{}
-		}
+		},
+		"track_total_hits": true
 	}`
 
 	var mapResp map[string]interface{}
@@ -520,13 +527,24 @@ func searchAllDocumentByIndex(index string) map[string]interface{} {
 
 		// Decode the JSON response and using a pointer
 		json.NewDecoder(res.Body).Decode(&mapResp)
-		hits := mapResp["hits"].(map[string]interface{})
-		hitsInHits := hits["hits"].([]interface{})
-		if len(hitsInHits) > 0 {
-			return hits
-		} else {
+		if _, haveError := mapResp["error"]; haveError {
+			errorMap := mapResp["error"].(map[string]interface{})
+			rootCause := errorMap["root_cause"].([]interface{})
+			docError := rootCause[0].(map[string]interface{})
+			
 			return map[string]interface{} {
-				"Message" : "ReviewID is not found",
+				"Message" : docError["reason"].(string),
+			}
+		} else if _, haveHits := mapResp["hits"]; haveHits {
+			hits := mapResp["hits"].(map[string]interface{})
+			hitsInHits := hits["hits"].([]interface{})
+
+			if len(hitsInHits) > 0 {
+				return hits
+			} else {
+				return map[string]interface{} {
+					"Message" : "ReviewID is not found",
+				}
 			}
 		}
 	}
@@ -542,4 +560,65 @@ func getNumberOfDocumentInIndex(index string) float64 {
 		return total["value"].(float64)
 	}
 	return 0
+}
+
+func searchFoodInDictionary(keyword string) map[string]interface{} {
+	query := `{
+		"query":{
+			"term":{
+				"keyword":"` + keyword + `"
+			}
+		}
+	}`
+
+	if checkInvalidJson(query) {
+		return map[string]interface{} {
+			"Message" : "Food Keyword is invalid format",
+		}
+	}
+
+	// Build a new string from JSON query
+	var b strings.Builder
+	b.WriteString(query)
+	
+	// Instantiate a *strings.Reader object from string
+	read := strings.NewReader(b.String())
+
+	var mapResp map[string]interface{}
+	var buf bytes.Buffer
+
+	// Attempt to encode the JSON query and look for errors
+	json.NewEncoder(&buf).Encode(read)
+	// Pass the JSON query to the Golang client's Search() method
+	res, err := elasticClient.Search(
+		elasticClient.Search.WithIndex("foods"),
+		elasticClient.Search.WithBody(read),
+		elasticClient.Search.WithPretty(),
+	)
+
+	// Check for any errors returned by API call to Elasticsearch
+	if err != nil {
+		return map[string]interface{} {
+			"Message" : "Elasticsearch Search() API Error",
+			"Error" : err,
+		}
+	} else {
+		// Close the result body when the function call is complete
+		defer res.Body.Close()
+
+		// Decode the JSON response and using a pointer
+		json.NewDecoder(res.Body).Decode(&mapResp)
+
+		hits := mapResp["hits"].(map[string]interface{})
+		hitsInhints := hits["hits"].([]interface{})
+
+		if len(hitsInhints) == 1 {
+			document := hitsInhints[0].(map[string]interface{})
+			return document["_source"].(map[string]interface{})
+		} else {
+			return map[string]interface{} {
+				"Message" : "Message Keyword is not found",
+			}
+		}
+	}
 }

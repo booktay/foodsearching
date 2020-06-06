@@ -19,4 +19,4 @@ EXPOSE ${PORT}
 RUN go build -o ${APP_NAME}
 CMD ./${APP_NAME}
 
-# CMD CGO_ENABLED=0 go test /go/src/${APP_NAME}
+# CMD CGO_ENABLED=0 go test ./...
