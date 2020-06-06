@@ -1,6 +1,12 @@
-# Food Searching
+# Food Review Searching
 
-Create Food Searcher with **GO** and **Elasticsearch**
+Create Food Review Searching with **GO** and **Elasticsearch**
+
+## Running
+
+```
+docker-compose -f docker-compose.yml up
+```
 
 ## API Usage
 
@@ -136,3 +142,25 @@ Document Input Format
         Keyword string `json:"keyword"`
     }
     ```
+
+## Testing
+
+*!!! Please read the function description before the test. It can overwrite the database*
+
+Enable `go test` command and Disable `go build` in in **Dockerfile**
+
+```
+...
+
+# RUN go build -o ${APP_NAME}
+# CMD ./${APP_NAME}
+
+CMD CGO_ENABLED=0 go test ./...
+```
+
+Now, you can test by using this command.
+
+```
+docker-compose -f docker-compose.yml up
+```
+
