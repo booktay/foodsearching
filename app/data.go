@@ -8,6 +8,8 @@ import (
 	"time"
 	"bufio"
 	"strconv"
+	
+	"github.com/joho/godotenv"
 )
 
 var foodReviewsDir = flag.String("foodReviewsDir", "data/test_file.csv", "Food Reviews Directory")
@@ -94,4 +96,11 @@ func getFoodKeyword() ([]FoodKeyword, error) {
 	// Return Datas
 	log.Print("Reading Completed")
 	return foodKeywordsData, nil
+}
+
+func loadEnvironment() {
+    // loads values from .env into the system
+    if err := godotenv.Load(); err != nil {
+        log.Print("No .env file found")
+	}
 }
