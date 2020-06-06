@@ -9,9 +9,10 @@ import (
 	"time"
 	"flag"
 	"strings"
-	"os/exec"
-	// "reflect"
 	"strconv"
+	"os"
+	"os/exec"
+
 	"github.com/dustin/go-humanize"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
@@ -32,6 +33,8 @@ func startElasticsearchConnection() {
 		Addresses: []string {
 			ES01IP,
 		},
+		Username: os.Getenv("ES_USERNAME"),
+		Password: os.Getenv("ES_PASSWORD"),
 	}
 
 	es, err := elasticsearch.NewClient(cfg)

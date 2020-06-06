@@ -1,12 +1,16 @@
 # Food Review Searching
 
-Create Food Review Searching with **GO** and **Elasticsearch**
+### Create Food Review Searching with **GO** and **Elasticsearch**
 
-## Running
+## Installation
 
-```
-docker-compose -f docker-compose.yml up
-```
+1. Create **es.password** file and **.env** by following [Security Setting](#Security-Setting)
+
+2. Run `docker-compose` command
+
+    ```
+    docker-compose -f docker-compose.yml up
+    ```
 
 ## API Usage
 
@@ -121,7 +125,7 @@ docker-compose -f docker-compose.yml up
 
 ## Elasticsearch
 
-Document Input Format
+### Document Input Structure
 
 1. Formatting from fest_file.csv
 
@@ -141,6 +145,21 @@ Document Input Format
         ID string `json:"keywordid"`
         Keyword string `json:"keyword"`
     }
+    ```
+
+### Security Setting
+
+1. Create **es.password** file at **ROOT** Directory
+
+    ```
+    <Your Password>
+    ```
+
+2. Create **.env** file at **/app** Directory
+
+    ```
+    ES_USERNAME=elastic
+    ES_PASSWORD=<Your Password>
     ```
 
 ## Testing
