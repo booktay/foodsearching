@@ -15,7 +15,7 @@
 # vendor/
 
 # Elasticsearch
-es01/
+# es01/
 
 # DS_Store
 *.DS_Store
