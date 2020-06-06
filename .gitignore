@@ -16,6 +16,7 @@
 
 # Elasticsearch
 es.password
+.env
 # es01/
 
 # DS_Store
