@@ -12,3 +12,13 @@ func checkInvalidJson(text string) bool {
 		return true
 	}
 }
+
+func checkHaveFoodKeyword(text string) bool {
+	document := searchFoodInDictionary(text)
+	if _, ok := document["message"]; ok {
+		return false
+	} else if _, ok := document["_id"]; ok {
+		return true
+	}
+	return false
+}

@@ -141,7 +141,7 @@ func insertBulkDocument() {
 	}
 
 	// Use to create Food reviews index
-	indexName := "review"
+	indexName := "reviews"
 	datas := reviewDatas
 
 	// Use to create Food keywords index
@@ -542,4 +542,63 @@ func getNumberOfDocumentInIndex(index string) float64 {
 		return total["value"].(float64)
 	}
 	return 0
+}
+
+func searchFoodInDictionary(keyword string) map[string]interface{} {
+	query := `{
+		"query":{
+			"term":{
+				"_id":"` + keyword + `"
+			}
+		}
+	}`
+
+	if checkInvalidJson(query) {
+		return map[string]interface{} {
+			"Message" : "Keyword is invalid format",
+		}
+	}
+
+	// Build a new string from JSON query
+	var b strings.Builder
+	b.WriteString(query)
+	
+	// Instantiate a *strings.Reader object from string
+	read := strings.NewReader(b.String())
+
+	var mapResp map[string]interface{}
+	var buf bytes.Buffer
+
+	// Attempt to encode the JSON query and look for errors
+	json.NewEncoder(&buf).Encode(read)
+	// Pass the JSON query to the Golang client's Search() method
+	res, err := elasticClient.Search(
+		elasticClient.Search.WithIndex("foods"),
+		elasticClient.Search.WithBody(read),
+		elasticClient.Search.WithPretty(),
+	)
+
+	// Check for any errors returned by API call to Elasticsearch
+	if err != nil {
+		return map[string]interface{} {
+			"Message" : "Elasticsearch Search() API Error",
+			"Error" : err,
+		}
+	} else {
+		// Close the result body when the function call is complete
+		defer res.Body.Close()
+
+		// Decode the JSON response and using a pointer
+		json.NewDecoder(res.Body).Decode(&mapResp)
+
+		hits := mapResp["hits"].(map[string]interface{})
+		hitsInhints := hits["hits"].([]interface{})
+		if len(hitsInhints) == 1 {
+			return hitsInhints[0].(map[string]interface{})
+		} else {
+			return map[string]interface{} {
+				"Message" : "Keyword is not found",
+			}
+		}
+	}
 }

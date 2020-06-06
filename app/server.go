@@ -30,8 +30,15 @@ func getReviewsByID (c *gin.Context) {
 
 func getReviewsByKeyword (c *gin.Context) {
 	reviewtext := c.DefaultQuery("query", "")
-	result := searchByMatchKeyword(reviewtext)
-	c.SecureJSON(http.StatusOK, result)
+	if checkHaveFoodKeyword(reviewtext) {
+		result := searchByMatchKeyword(reviewtext)
+		c.SecureJSON(http.StatusOK, result)
+	} else {
+		c.SecureJSON(http.StatusOK, gin.H{
+			"message": "Food keyword isn't in 20,000 keywords",
+		})
+	}
+	
 }
 
 func editReviewsByID (c *gin.Context) {
