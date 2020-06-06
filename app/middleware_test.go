@@ -3,10 +3,10 @@ package main
 import (
 	"testing"
 
-	"encoding/json"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestcheckHaveFoodKeyword() {
+func TestcheckHaveFoodKeyword(t *testing.T) {
 	startElasticsearchConnection()
 
 	results := checkHaveFoodKeyword("assorted coffee")
