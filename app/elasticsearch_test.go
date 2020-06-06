@@ -117,6 +117,77 @@ func TestInputSearchInCorrectID(t *testing.T) {
 	}
 }
 
+func TestInputSearchKeywordInDict(t *testing.T) {
+	startElasticsearchConnection()
+
+	testCases := [] struct {
+		Input string
+		Output map[string]interface{}
+	} {
+		{
+			Input: "ข้าวผัดมันกากหมู",
+			Output: map[string]interface{} {
+				"max_score": 17.005238,
+				"total": map[string]interface{} {
+					"relation": "eq",
+					"value": float64(3411),
+				},
+			},
+		},
+		{
+			Input: "blueberry icecream crepe",
+			Output: map[string]interface{} {
+				"max_score": 14.032763,
+				"total": map[string]interface{} {
+					"relation": "eq",
+					"value": float64(6),
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.Input, func(t *testing.T) {
+			t.Parallel()
+			resultKeyword := searchByMatchKeyword(tc.Input)
+			delete(resultKeyword, "hits")
+			assert.Equal(t, resultKeyword, tc.Output)
+		})
+	}
+}
+
+func TestInputSearchKeywordNotinDict(t *testing.T) {
+	startElasticsearchConnection()
+
+	testCases := [] struct {
+		Input string
+		Output map[string]interface{}
+	} {
+		{
+			Input: "ข้าวหมูแดง",
+			Output: map[string]interface{} {
+				"message": "Food keyword isn't in 20,000 keywords",
+			},
+		},
+		{
+			Input: "คุกกี้ไก่กรอบราดซอส",
+			Output: map[string]interface{} {
+				"message": "Food keyword isn't in 20,000 keywords",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.Input, func(t *testing.T) {
+			t.Parallel()
+			resultKeyword := searchByMatchKeyword(tc.Input)
+			assert.Equal(t, resultKeyword, tc.Output)
+		})
+	}
+}
+
 func TestInputGetNumOfDocsofExistIndex(t *testing.T) {
 	startElasticsearchConnection()
 
@@ -170,7 +241,6 @@ func TestInputGetNumOfDocsofNoExistIndex(t *testing.T) {
 		})
 	}
 }
-
 
 // Enable Only First Time to create Elasticsearch documents
 // func TestInsertBulkDocument(t *testing.T) {
