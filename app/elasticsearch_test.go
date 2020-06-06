@@ -16,15 +16,24 @@ func TestInputDataloadReviewsAndKeyword(t *testing.T) {
 	assert.Equal(t, 20000, len(foodKeyword), "Equal")
 }
 
-func TestInputResultFoodInDict(t *testing.T) {
+func TestInputFoodInDict(t *testing.T) {
 	startElasticsearchConnection()
 
-	// resultEdit := editReviewsByMatchID("10", "")	
-	// test.AssertEquals(t, map[string]interface{}, reflect.TypeOf(resultEdit))
 	input := "assorted coffee"
 	foodInDict := searchFoodInDictionary(input)
-	results := foodInDict["_id"].(string)
+	results := foodInDict["keyword"].(interface{})
 	assert.Equal(t, input, results, "Equal")
+}
+
+func TestInputFoodNotInDict(t *testing.T) {
+	startElasticsearchConnection()
+
+	input := "ไก่"
+	output := map[string]interface{} {
+		"Message" : "Message Keyword is not found",
+	}
+	foodInDict := searchFoodInDictionary(input)
+	assert.Equal(t, output, foodInDict, "Equal")
 }
 
 func TestInputSearchCorrectID(t *testing.T) {
