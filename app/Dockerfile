@@ -16,7 +16,7 @@ RUN go get ./
 
 EXPOSE ${PORT}
 
-# RUN go build -o ${APP_NAME}
-# CMD ./${APP_NAME}
+RUN go build -o ${APP_NAME}
+CMD ./${APP_NAME}
 
-CMD CGO_ENABLED=0 go test ./...
+# CMD CGO_ENABLED=0 go test ./...
