@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"io/ioutil"
 
+	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,6 +17,11 @@ func startServer() {
 
 func setupRouter() *gin.Engine {
 	router := gin.Default()
+	
+	// Serve frontend static files
+	router.Use(static.Serve("/", static.LocalFile("./static", true)))
+
+	// Set API Route
 	router.GET("/reviews", getReviewsByKeyword)
 	router.GET("/reviews/:id", getReviewsByID)
 	router.PUT("/reviews/:id", editReviewsByID)
