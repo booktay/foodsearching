@@ -526,13 +526,24 @@ func searchAllDocumentByIndex(index string) map[string]interface{} {
 
 		// Decode the JSON response and using a pointer
 		json.NewDecoder(res.Body).Decode(&mapResp)
-		hits := mapResp["hits"].(map[string]interface{})
-		hitsInHits := hits["hits"].([]interface{})
-		if len(hitsInHits) > 0 {
-			return hits
-		} else {
+		if _, haveError := mapResp["error"]; haveError {
+			errorMap := mapResp["error"].(map[string]interface{})
+			rootCause := errorMap["root_cause"].([]interface{})
+			docError := rootCause[0].(map[string]interface{})
+			
 			return map[string]interface{} {
-				"Message" : "ReviewID is not found",
+				"Message" : docError["reason"].(string),
+			}
+		} else if _, haveHits := mapResp["hits"]; haveHits {
+			hits := mapResp["hits"].(map[string]interface{})
+			hitsInHits := hits["hits"].([]interface{})
+
+			if len(hitsInHits) > 0 {
+				return hits
+			} else {
+				return map[string]interface{} {
+					"Message" : "ReviewID is not found",
+				}
 			}
 		}
 	}

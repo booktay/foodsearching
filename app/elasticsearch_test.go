@@ -144,6 +144,34 @@ func TestInputGetNumOfDocsofExistIndex(t *testing.T) {
 	}
 }
 
+func TestInputGetNumOfDocsofNoExistIndex(t *testing.T) {
+	startElasticsearchConnection()
+
+	testCases := [] struct {
+		Input string
+		Output float64
+	} {
+		{
+			Input: "cars",
+			Output: 0,
+		},
+		{
+			Input: "thread",
+			Output: 0,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.Input, func(t *testing.T) {
+			t.Parallel()
+			resultNumberofDocument := getNumberOfDocumentInIndex(tc.Input)
+			assert.Equal(t, resultNumberofDocument, tc.Output)
+		})
+	}
+}
+
+
 // Enable Only First Time to create Elasticsearch documents
 // func TestInsertBulkDocument(t *testing.T) {
 // 	startElasticsearchConnection()
