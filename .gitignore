@@ -15,6 +15,7 @@
 # vendor/
 
 # Elasticsearch
+es.password
 # es01/
 
 # DS_Store
