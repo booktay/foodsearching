@@ -4,8 +4,12 @@ import (
 	"log"
 )
 
-func main() {
+func init() {
 	log.Println("Starting the Container")
+	loadEnvironment()
 	startElasticsearchConnection()
+}
+
+func main() {
 	startServer()
 }
