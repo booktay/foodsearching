@@ -447,7 +447,7 @@ func editReviewsByMatchID(keyword string, text string) map[string]interface{} {
 			if err != nil {
 				return map[string]interface{} {
 					"Message" : "Elasticsearch Update() API Error",
-					"Error" : err,
+					"result" : "Not updated",
 				}
 			} else {
 				// Close the result body when the function call is complete
@@ -455,6 +455,7 @@ func editReviewsByMatchID(keyword string, text string) map[string]interface{} {
 
 				// Decode the JSON response and using a pointer
 				json.NewDecoder(res.Body).Decode(&mapResp)
+
 				if _, ok := mapResp["_id"]; ok {
 					return map[string]interface{} {
 						"result": mapResp["result"].(string),
@@ -463,14 +464,14 @@ func editReviewsByMatchID(keyword string, text string) map[string]interface{} {
 				} else {
 					return map[string]interface{} {
 						"Message" : "Error when updated",
-						"result": "Not Updated",
+						"result": "Not updated",
 					}
 				}
 			}
 		} else {
 			return map[string]interface{} {
 				"Message" : "An updated time came after Last modified time",
-				"result": "Not Updated",
+				"result": "Not updated",
 			}
 		}
 	}

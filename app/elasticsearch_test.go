@@ -2,7 +2,6 @@ package main
 
 import (
 	"testing"
-	// "reflect"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -41,25 +40,12 @@ func TestInputSearchCorrectID(t *testing.T) {
 
 	testCases := [] struct {
 		Input string
-		Output map[string]interface{}
 	} {
 		{
 			Input: "1",
-			Output: map[string]interface{} {
-				"_id": "1",
-				"_index": "reviews",
-				"_score": 8.327645,
-				"_type": "_doc",
-			},
 		},
 		{
 			Input: "6203",
-			Output: map[string]interface{} {
-				"_id": "6203",
-				"_index": "reviews",
-				"_score": 8.327645,
-				"_type": "_doc",
-			},
 		},
 	}
 
@@ -68,8 +54,7 @@ func TestInputSearchCorrectID(t *testing.T) {
 		t.Run(tc.Input, func(t *testing.T) {
 			t.Parallel()
 			resultID := searchByMatchID(tc.Input)
-			delete(resultID, "_source")
-			assert.Equal(t, resultID, tc.Output)
+			assert.Equal(t, resultID["_id"].(string), tc.Input)
 		})
 	}
 }
@@ -125,23 +110,17 @@ func TestInputSearchKeywordInDict(t *testing.T) {
 		Output map[string]interface{}
 	} {
 		{
-			Input: "ข้าวผัดมันกากหมู",
+			Input: "ข้าวผัดกากหมู",
 			Output: map[string]interface{} {
-				"max_score": 17.005238,
-				"total": map[string]interface{} {
-					"relation": "eq",
-					"value": float64(3411),
-				},
+				"relation": "eq",
+				"value": float64(2789),
 			},
 		},
 		{
 			Input: "blueberry icecream crepe",
 			Output: map[string]interface{} {
-				"max_score": 14.032763,
-				"total": map[string]interface{} {
-					"relation": "eq",
-					"value": float64(6),
-				},
+				"relation": "eq",
+				"value": float64(6),
 			},
 		},
 	}
@@ -151,8 +130,7 @@ func TestInputSearchKeywordInDict(t *testing.T) {
 		t.Run(tc.Input, func(t *testing.T) {
 			t.Parallel()
 			resultKeyword := searchByMatchKeyword(tc.Input)
-			delete(resultKeyword, "hits")
-			assert.Equal(t, resultKeyword, tc.Output)
+			assert.Equal(t, resultKeyword["total"].(map[string]interface{}), tc.Output)
 		})
 	}
 }
@@ -238,6 +216,41 @@ func TestInputGetNumOfDocsofNoExistIndex(t *testing.T) {
 			t.Parallel()
 			resultNumberofDocument := getNumberOfDocumentInIndex(tc.Input)
 			assert.Equal(t, resultNumberofDocument, tc.Output)
+		})
+	}
+}
+
+// Enable When run Go Test
+func TestEditData(t *testing.T) {
+	testCases := [] struct {
+		ID string
+		Text string
+		Output map[string] interface{}
+	} {
+		{
+			ID: "6100",
+			Text: "โต๊ะไม่ค่อยสะอาด วางแขนไปเหนียวหนึบเลย ราคาก็ไม่ถูกแล้ว ราคาในเมนูไม่ net นะ มีคิดพวก service charge เพิ่มอีก",
+			Output: map[string] interface{} {
+				"id": "6100",
+				"result": "updated",
+			},
+		},
+		{
+			ID: "5000",
+			Text: "ข้าวผัดคอหมูย่าง\n ข้าวผัดมากลิ่นหอม คอหมูย่างอร่อยดี แต่ให้มาน้อยชิ้นไปหน่อย\n 'Piglet Go` \"`",
+			Output: map[string] interface{} {
+				"Message": "Error when updated",
+				"result": "Not updated",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.ID, func(t *testing.T) {
+			t.Parallel()
+			resultEdit := editReviewsByMatchID(tc.ID, string(tc.Text))
+			assert.Equal(t, tc.Output, resultEdit)
 		})
 	}
 }
