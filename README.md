@@ -11,6 +11,21 @@
     ```
     docker-compose -f docker-compose.yml up
     ```
+    Wait for the **docker-compose** process until the **elasticsearch server** is active and the **API server** is fully connected to the **elasticsearch server**.
+
+3. Testing with this IP Address
+
+    ```
+    http://localhost:5555
+    ```
+
+## Web Interface
+
+You can search from the static web interface by going to this URL
+
+```
+http://localhost:5555
+```
 
 ## API Usage
 

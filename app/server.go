@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 
 	"github.com/gin-gonic/contrib/static"
+	// "github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,8 +19,19 @@ func startServer() {
 func setupRouter() *gin.Engine {
 	router := gin.Default()
 	
+	// config := cors.DefaultConfig()
+	
+	// config.AllowOrigins = []string {
+	// 	"http://localhost:3000",
+	// }
+	// config.AllowMethods = []string {"PUT", "GET", "OPTIONS"}
+	// config.AllowHeaders = []string {"Origin"}
+
+	// Use CORS
+	// router.Use(cors.New(config))
+
 	// Serve frontend static files
-	router.Use(static.Serve("/", static.LocalFile("./static", true)))
+	router.Use(static.Serve("/", static.LocalFile("./build", true)))
 
 	// Set API Route
 	router.GET("/reviews", getReviewsByKeyword)
@@ -36,15 +48,8 @@ func getReviewsByID (c *gin.Context) {
 
 func getReviewsByKeyword (c *gin.Context) {
 	reviewtext := c.DefaultQuery("query", "")
-	if checkHaveFoodKeyword(reviewtext) {
-		result := searchByMatchKeyword(reviewtext)
-		c.SecureJSON(http.StatusOK, result)
-	} else {
-		c.SecureJSON(http.StatusOK, gin.H{
-			"message": "Food keyword isn't in 20,000 keywords",
-		})
-	}
-	
+	result := searchByMatchKeyword(reviewtext)
+	c.SecureJSON(http.StatusOK, result)
 }
 
 func editReviewsByID (c *gin.Context) {
