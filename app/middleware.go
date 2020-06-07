@@ -15,9 +15,9 @@ func checkInvalidJson(text string) bool {
 
 func checkHaveFoodKeyword(text string) bool {
 	document := searchFoodInDictionary(text)
-	if _, ok := document["message"]; ok {
+	if _, ok := document["Message"]; ok {
 		return false
-	} else if _, ok := document["keyword"]; ok {
+	} else if _, ok := document["Value"]; ok {
 		return true
 	}
 	return false

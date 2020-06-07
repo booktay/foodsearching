@@ -613,11 +613,12 @@ func searchFoodInDictionary(keyword string) map[string]interface{} {
 		json.NewDecoder(res.Body).Decode(&mapResp)
 
 		hits := mapResp["hits"].(map[string]interface{})
-		hitsInhints := hits["hits"].([]interface{})
-
-		if len(hitsInhints) == 1 {
-			document := hitsInhints[0].(map[string]interface{})
-			return document["_source"].(map[string]interface{})
+		total := hits["total"].(map[string]interface{})
+		value := total["value"].(float64)
+		if value > 0 {
+			return map[string]interface{} {
+				"Value" : value,
+			}
 		} else {
 			return map[string]interface{} {
 				"Message" : "Message Keyword is not found",

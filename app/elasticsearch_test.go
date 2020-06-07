@@ -10,9 +10,10 @@ func TestInputFoodInDict(t *testing.T) {
 	startElasticsearchConnection()
 
 	input := "assorted coffee"
+	output := 1
 	foodInDict := searchFoodInDictionary(input)
-	results := foodInDict["keyword"].(interface{})
-	assert.Equal(t, input, results, "Equal")
+	results := foodInDict["Value"].(interface{})
+	assert.Equal(t, output, results, "Equal")
 }
 
 func TestInputFoodNotInDict(t *testing.T) {
