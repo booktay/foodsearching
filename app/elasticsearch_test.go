@@ -9,22 +9,75 @@ import (
 func TestInputFoodInDict(t *testing.T) {
 	startElasticsearchConnection()
 
-	input := "assorted coffee"
-	output := 1
-	foodInDict := searchFoodInDictionary(input)
-	results := foodInDict["Value"].(interface{})
-	assert.Equal(t, output, results, "Equal")
+	testCases := [] struct {
+		Input string
+		Output bool
+	} {
+		{
+			Input: "ข้าวพันผักสาหร่ยเส้นแก้วไข่ดาว",
+			Output: true,
+		},
+		{
+			Input: "ผัดเห็ดสามอย่าง ผัดเผ็ดกบ สปาเกตตี้",
+			Output: true,
+		},
+		{
+			Input: "ข้าวขาหมู ก๋วยเตี๋ยวน้ำใส",
+			Output: true,
+		},
+		{
+			Input: "homemade marshmallow",
+			Output: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.Input, func(t *testing.T) {
+			t.Parallel()
+			foodInDict := searchFoodInDictionary(tc.Input)
+			results := false
+			if _, ok := foodInDict["Value"]; ok {
+				results = true
+			}
+			assert.Equal(t, tc.Output, results, "Equal")
+		})
+	}
 }
 
 func TestInputFoodNotInDict(t *testing.T) {
 	startElasticsearchConnection()
 
-	input := "ไก่"
-	output := map[string]interface{} {
-		"Message" : "Message Keyword is not found",
+	testCases := [] struct {
+		Input string
+		Output bool
+	} {
+		{
+			Input: "soft pancake rolls christmas set",
+			Output: false,
+		},
+		{
+			Input: "banana chocolate crepe",
+			Output: false,
+		},
+		{
+			Input: "เค้กปริ้นเซส & โรส บัทเทอร์วานิลลา",
+			Output: false,
+		},
 	}
-	foodInDict := searchFoodInDictionary(input)
-	assert.Equal(t, output, foodInDict, "Equal")
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.Input, func(t *testing.T) {
+			t.Parallel()
+			foodInDict := searchFoodInDictionary(tc.Input)
+			results := false
+			if _, ok := foodInDict["Value"]; ok {
+				results = true
+			}
+			assert.Equal(t, tc.Output, results, "Equal")
+		})
+	}
 }
 
 func TestInputSearchCorrectID(t *testing.T) {
@@ -135,13 +188,13 @@ func TestInputSearchKeywordNotinDict(t *testing.T) {
 		Output map[string]interface{}
 	} {
 		{
-			Input: "ข้าวหมูแดง",
+			Input: "เค้กปริ้นเซส & โรส บัทเทอร์วานิลลา",
 			Output: map[string]interface{} {
 				"message": "Food keyword isn't in 20,000 keywords",
 			},
 		},
 		{
-			Input: "คุกกี้ไก่กรอบราดซอส",
+			Input: "soft pancake rolls christmas set",
 			Output: map[string]interface{} {
 				"message": "Food keyword isn't in 20,000 keywords",
 			},
@@ -216,48 +269,48 @@ func TestInputGetNumOfDocsofNoExistIndex(t *testing.T) {
 // It will replace a real review with a mockup review.
 // Please enable only for the test to edit the review text
 //
-func TestEditData(t *testing.T) {
-	testCases := [] struct {
-		ID string
-		Text string
-		Output map[string] interface{}
-	} {
-		{
-			ID: "6100",
-			Text: "โต๊ะไม่ค่อยสะอาด วางแขนไปเหนียวหนึบเลย ราคาก็ไม่ถูกแล้ว ราคาในเมนูไม่ net นะ มีคิดพวก service charge เพิ่มอีก",
-			Output: map[string] interface{} {
-				"id": "6100",
-				"result": "updated",
-			},
-		},
-		{
-			ID: "5000",
-			Text: "ข้าวผัดคอหมูย่าง\n ข้าวผัดมากลิ่นหอม คอหมูย่างอร่อยดี แต่ให้มาน้อยชิ้นไปหน่อย\n 'Piglet Go` \"`",
-			Output: map[string] interface{} {
-				"Message": "Error when updated",
-				"result": "Not updated",
-			},
-		},
-	}
+// func TestEditData(t *testing.T) {
+// 	testCases := [] struct {
+// 		ID string
+// 		Text string
+// 		Output map[string] interface{}
+// 	} {
+// 		{
+// 			ID: "6100",
+// 			Text: "โต๊ะไม่ค่อยสะอาด วางแขนไปเหนียวหนึบเลย ราคาก็ไม่ถูกแล้ว ราคาในเมนูไม่ net นะ มีคิดพวก service charge เพิ่มอีก",
+// 			Output: map[string] interface{} {
+// 				"id": "6100",
+// 				"result": "updated",
+// 			},
+// 		},
+// 		{
+// 			ID: "5000",
+// 			Text: "ข้าวผัดคอหมูย่าง\n ข้าวผัดมากลิ่นหอม คอหมูย่างอร่อยดี แต่ให้มาน้อยชิ้นไปหน่อย\n 'Piglet Go` \"`",
+// 			Output: map[string] interface{} {
+// 				"Message": "Error when updated",
+// 				"result": "Not updated",
+// 			},
+// 		},
+// 	}
 
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.ID, func(t *testing.T) {
-			t.Parallel()
-			resultEdit := editReviewsByMatchID(tc.ID, string(tc.Text))
-			assert.Equal(t, tc.Output, resultEdit)
-		})
-	}
-}
+// 	for _, tc := range testCases {
+// 		tc := tc
+// 		t.Run(tc.ID, func(t *testing.T) {
+// 			t.Parallel()
+// 			resultEdit := editReviewsByMatchID(tc.ID, string(tc.Text))
+// 			assert.Equal(t, tc.Output, resultEdit)
+// 		})
+// 	}
+// }
 
 // Be careful to enable this function
 // It will replace real documents with mock documents.
 // Please enable only for the test to create Elasticsearch documents
 //
-func TestInsertBulkDocument(t *testing.T) {
-	startElasticsearchConnection()
+// func TestInsertBulkDocument(t *testing.T) {
+// 	startElasticsearchConnection()
 
-	message, err := insertBulkDocument()
-	assert.Equal(t, "Sucessfuly indexed documents", message)
-	assert.Equal(t, nil, err)
-}
+// 	message, err := insertBulkDocument()
+// 	assert.Equal(t, "Sucessfuly indexed documents", message)
+// 	assert.Equal(t, nil, err)
+// }
