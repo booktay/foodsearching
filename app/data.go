@@ -98,9 +98,11 @@ func getFoodKeyword() ([]FoodKeyword, error) {
 	return foodKeywordsData, nil
 }
 
-func loadEnvironment() {
+func loadEnvironment() error {
     // loads values from .env into the system
     if err := godotenv.Load(); err != nil {
-        log.Print("No .env file found")
+		log.Print("No .env file found")
+		return err
 	}
+	return nil
 }

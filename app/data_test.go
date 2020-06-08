@@ -21,3 +21,10 @@ func TestOutputgetFoodKeyword(t *testing.T) {
 	assert.Equal(t, nil, err, "Equal")
 	assert.Equal(t, 20000, len(foodKeywords), "Equal")
 }
+
+func TestLoadEnvironment(t *testing.T) {
+
+	err := loadEnvironment()
+
+	assert.Equal(t, nil, err, "Equal")
+}
