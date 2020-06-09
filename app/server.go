@@ -35,8 +35,9 @@ func setupRouter() *gin.Engine {
 	router.Use(static.Serve("/", static.LocalFile("./build", true)))
 
 	// Enable CORS for Frontend - API Testing
-	config := setupCORSforFrontend()
-	router.Use(cors.New(config))
+	//
+	// config := setupCORSforFrontend()
+	// router.Use(cors.New(config))
 
 	// Set API Route
 	router.GET("/reviews", getReviewsByKeyword)
