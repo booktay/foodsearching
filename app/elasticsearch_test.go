@@ -269,39 +269,33 @@ func TestInputGetNumOfDocsofNoExistIndex(t *testing.T) {
 // It will replace a real review with a mockup review.
 // Please enable only for the test to edit the review text
 //
-// func TestEditData(t *testing.T) {
-// 	testCases := [] struct {
-// 		ID string
-// 		Text string
-// 		Output map[string] interface{}
-// 	} {
-// 		{
-// 			ID: "6100",
-// 			Text: "โต๊ะไม่ค่อยสะอาด วางแขนไปเหนียวหนึบเลย ราคาก็ไม่ถูกแล้ว ราคาในเมนูไม่ net นะ มีคิดพวก service charge เพิ่มอีก",
-// 			Output: map[string] interface{} {
-// 				"id": "6100",
-// 				"result": "updated",
-// 			},
-// 		},
-// 		{
-// 			ID: "5000",
-// 			Text: "ข้าวผัดคอหมูย่าง\n ข้าวผัดมากลิ่นหอม คอหมูย่างอร่อยดี แต่ให้มาน้อยชิ้นไปหน่อย\n 'Piglet Go` \"`",
-// 			Output: map[string] interface{} {
-// 				"Message": "Error when updated",
-// 				"result": "Not updated",
-// 			},
-// 		},
-// 	}
+func TestEditData(t *testing.T) {
+	startElasticsearchConnection()
 
-// 	for _, tc := range testCases {
-// 		tc := tc
-// 		t.Run(tc.ID, func(t *testing.T) {
-// 			t.Parallel()
-// 			resultEdit := editReviewsByMatchID(tc.ID, string(tc.Text))
-// 			assert.Equal(t, tc.Output, resultEdit)
-// 		})
-// 	}
-// }
+	testCases := [] struct {
+		ID string
+		Text []byte
+		Output map[string] interface{}
+	} {
+		{
+			ID: "6100",
+			Text: []byte(`\n\n 'Piglet Go alert("ข้าวผัดคอหมูย่าง")`),
+			Output: map[string] interface{} {
+				"Message": "Error when updated",
+				"result": "Not updated",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.ID, func(t *testing.T) {
+			t.Parallel()
+			resultEdit := editReviewsByMatchID(tc.ID, tc.Text)
+			assert.Equal(t, tc.Output, resultEdit)
+		})
+	}
+}
 
 // Be careful to enable this function
 // It will replace real documents with mock documents.

@@ -349,6 +349,7 @@ func searchByMatchKeyword(keyword string) map[string]interface{} {
 				"require_field_match":false,
 			"fields":{
 				"reviewtext":{
+					"matched_fields": ["reviewtext"],
 					"type":"unified",
 					"fragmenter":"span"
 				}
@@ -415,7 +416,7 @@ func searchByMatchKeyword(keyword string) map[string]interface{} {
 	}
 }
 
-func editReviewsByMatchID(keyword string, text string) map[string]interface{} {
+func editReviewsByMatchID(keyword string, text []byte) map[string]interface{} {
 	// Get Document of reviewID
 	document := searchByMatchID(keyword)
 
@@ -438,14 +439,8 @@ func editReviewsByMatchID(keyword string, text string) map[string]interface{} {
 					"modified": %d
 				}
 			}`, text, timeNow))
-
-			var buf bytes.Buffer
-
-			// Append payloads to the buffer (ignoring write errors)
-			buf.Grow(len(query))
-			buf.Write(query)
 			
-			res, err := elasticClient.Update("reviews", ID.(string), bytes.NewReader(buf.Bytes()), elasticClient.Update.WithPretty())
+			res, err := elasticClient.Update("reviews", ID.(string), bytes.NewBuffer(query), elasticClient.Update.WithPretty())
 
 			if err != nil {
 				return map[string]interface{} {
