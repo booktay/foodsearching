@@ -140,6 +140,52 @@ http://localhost:5555
 
 ## Elasticsearch
 
+### Text Analyzer
+
+- Using `shingle` to analyze search keywords
+- Using `ICU_Analyzer` to tokenize words
+- Index Setting
+
+    ```
+    {
+        "analysis": {
+            "filter": {
+                "filter_shingle": {
+                    "max_shingle_size": "4",
+                    "min_shingle_size": "2",
+                    "output_unigrams_if_no_shingles": "false",
+                    "output_unigrams": "true",
+                    "type": "shingle"
+                },
+                "thai_stop": {
+                    "type": "stop",
+                    "stopwords": "_thai_"
+                }
+            },
+            "analyzer": {
+                "analyzer_shingle": {
+                    "filter": [
+                        "filter_shingle",
+                        "thai_stop"
+                    ],
+                    "tokenizer": "icu_tokenizer"
+                }
+            }
+        }
+    }
+    ```
+- Index Mapping
+    ```
+    {
+        "properties": {
+            "reviewtext": {
+                "type": "text",
+                "analyzer": "analyzer_shingle"
+            }
+        }
+    }
+    ```
+
 ### Document Input Structure
 
 1. Formatting from fest_file.csv
@@ -181,9 +227,10 @@ http://localhost:5555
 
 *!!! Please read the function description before the test. It can overwrite the database*
 
-Enable `go test` command and Disable `go build` in in **Dockerfile**
+Enable/Disable `go test` and `go build` command in `Dockerfile`
 
 ```
+Previous command
 ...
 
 # RUN go build -o ${APP_NAME}
@@ -198,3 +245,4 @@ Now, you can test by using this command.
 docker-compose -f docker-compose.yml up
 ```
 
+Please be careful when you Test edit review text. it may cause to run the test to fail because It will change a search result to another.
