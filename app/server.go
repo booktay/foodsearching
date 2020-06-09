@@ -64,6 +64,6 @@ func getReviewsByKeyword (c *gin.Context) {
 func editReviewsByID (c *gin.Context) {
 	reviewID := c.Param("id")
 	reviewText, _ := ioutil.ReadAll(c.Request.Body)
-	result := editReviewsByMatchID(reviewID, string(reviewText))
+	result := editReviewsByMatchID(reviewID, reviewText)
 	c.SecureJSON(http.StatusOK, result)
 }
