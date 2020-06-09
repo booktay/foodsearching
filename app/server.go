@@ -43,6 +43,10 @@ func setupRouter() *gin.Engine {
 	router.GET("/reviews", getReviewsByKeyword)
 	router.GET("/reviews/:id", getReviewsByID)
 	router.PUT("/reviews/:id", editReviewsByID)
+	router.NoRoute(func(c *gin.Context) { c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"} )
+	
+})
+
 	return router
 }
 
@@ -55,7 +59,7 @@ func getReviewsByID (c *gin.Context) {
 func getReviewsByKeyword (c *gin.Context) {
 	reviewtext := c.DefaultQuery("query", "")
 	if reviewtext == "" {
-		c.SecureJSON(http.StatusOK, "Reviews API")
+		c.SecureJSON(http.StatusOK, gin.H{"code": "200", "message": "Reviews API"})
 	} else {
 		result := searchByMatchKeyword(reviewtext)
 		c.SecureJSON(http.StatusOK, result)
